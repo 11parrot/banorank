@@ -2,7 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import Auth from "./pages/Auth.jsx";
 
-const socket = io("http://localhost:3000", {
+// Si la app está en internet, usará la URL del backend real; si estás en tu PC, usará localhost
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
+const socket = io(BACKEND_URL, {
   autoConnect: false,
 });
 
