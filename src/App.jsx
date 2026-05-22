@@ -6,7 +6,8 @@ import Auth from "./pages/Auth.jsx";
 const BACKEND_URL = "https://banorank-backend.onrender.com";
 
 const socket = io(BACKEND_URL, {
-  autoConnect: false,
+  autoConnect: false, // Lo dejamos en false, pero lo encenderemos de forma manual en el useEffect
+  withCredentials: true // 🔥 Crucial para que permita conexiones desde Vercel y celulares externos
 });
 
 export default function App() {
@@ -41,8 +42,13 @@ export default function App() {
   useEffect(() => {
     if (!token) return;
 
+    // Seteamos la autenticación del socket
     socket.auth = { token, username };
-    socket.connect();
+    
+    // 🔥 Fuerza la conexión manual si el socket está apagado
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     // Evento de conexión limpia
     socket.on("connect", () => {
@@ -83,8 +89,14 @@ export default function App() {
       setUsuarios(list);
     });
 
+    // Si nos desconectamos, actualizamos el estado visual de carga
+    socket.on("disconnect", () => {
+      setSocketConnected(false);
+    });
+
     return () => {
       socket.off("connect");
+      socket.off("disconnect");
       socket.off("load_bathrooms");
       socket.off("ranking_updated");
       socket.off("load_reports");
@@ -135,8 +147,9 @@ export default function App() {
 
   if (!socketConnected) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-gray-800 font-sans font-bold">
-        Conectando al servidor central...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-gray-800 font-sans font-bold gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <span>Conectando al servidor central de BañoRank...</span>
       </div>
     );
   }
