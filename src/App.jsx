@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import Auth from "./pages/Auth.jsx";
 
-// Si la app está en internet, usará la URL del backend real; si estás en tu PC, usará localhost
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+// Conectado oficialmente al backend en internet de Render 🚀
+const BACKEND_URL = "https://banorank-backend.onrender.com";
 
 const socket = io(BACKEND_URL, {
   autoConnect: false,
