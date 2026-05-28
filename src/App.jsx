@@ -44,13 +44,20 @@ export default function App() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes]);
 
+  // Sincronización y manejo del Ciclo de Vida de Sockets 📡
   useEffect(() => {
     if (!token || !username) return; 
 
+    // 🔐 Inyectamos credenciales en el handshake inicial antes de conectar
     socket.auth = { token, username };
     
     if (!socket.connected) {
       socket.connect();
+    }
+
+    // Si ya estaba conectado previamente, forzamos el estado a true
+    if (socket.connected) {
+      setSocketConnected(true);
     }
 
     socket.on("connect", () => {
@@ -104,7 +111,6 @@ export default function App() {
       socket.off("receive_message");
       socket.off("users_online");
       socket.off("users_list");
-      socket.disconnect();
     };
   }, [token, username]);
 
@@ -136,6 +142,16 @@ export default function App() {
 
     setComment("");
     alert("¡Reporte enviado exitosamente!");
+  };
+
+  // Limpieza manual al cerrar sesión
+  const cerrarSesion = () => {
+    socket.disconnect();
+    localStorage.clear();
+    setToken(null);
+    setUsername(null);
+    setSocketConnected(false);
+    window.location.reload();
   };
 
   if (!token) {
@@ -180,7 +196,7 @@ export default function App() {
         </div>
         
         <button 
-          onClick={() => { localStorage.clear(); window.location.reload(); }}
+          onClick={cerrarSesion}
           className="text-xs bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-xl font-bold transition-all text-center w-full"
         >
           Cerrar Sesión
