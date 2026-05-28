@@ -55,7 +55,6 @@ export default function App() {
       socket.connect();
     }
 
-    // Si ya estaba conectado previamente, forzamos el estado a true
     if (socket.connected) {
       setSocketConnected(true);
     }
@@ -144,7 +143,6 @@ export default function App() {
     alert("¡Reporte enviado exitosamente!");
   };
 
-  // Limpieza manual al cerrar sesión
   const cerrarSesion = () => {
     socket.disconnect();
     localStorage.clear();
@@ -168,10 +166,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex font-sans h-screen overflow-hidden text-gray-800">
+    /* CORRECCIÓN: En móvil se apila verticalmente (flex-col) y permite scroll. En PC recupera las 3 columnas fijas h-screen */
+    <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans md:h-screen md:overflow-hidden text-gray-800">
 
       {/* PANEL IZQUIERDO: USUARIOS Y CONTROL */}
-      <div className="w-64 bg-white p-5 border-r border-gray-200 flex flex-col justify-between h-full">
+      {/* CORRECCIÓN: w-full en móvil, w-64 estático en PC. Bordes dinámicos */}
+      <div className="w-full md:w-64 bg-white p-5 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-black text-orange-500 flex items-center gap-2">
             🚽 BañoRank
@@ -182,7 +182,8 @@ export default function App() {
             CNX: 🟢 {online} Conectados
           </div>
 
-          <div className="mt-6">
+          {/* CORRECCIÓN: Ocultamos la lista detallada de usuarios en móvil para ahorrar espacio vertical, se muestra en PC */}
+          <div className="hidden md:block mt-6">
             <h2 className="font-bold text-gray-700 text-xs uppercase tracking-wider border-b pb-1 mb-2">Comunidad Online</h2>
             <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
               {usuarios.map((u, i) => (
@@ -197,32 +198,34 @@ export default function App() {
         
         <button 
           onClick={cerrarSesion}
-          className="text-xs bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-xl font-bold transition-all text-center w-full"
+          className="text-xs bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-xl font-bold transition-all text-center w-full mt-4 md:mt-0"
         >
           Cerrar Sesión
         </button>
       </div>
 
       {/* PANEL CENTRAL: MAPEO UNIVERSITARIO */}
-      <div className="flex-1 p-6 overflow-y-auto h-full space-y-6 bg-gray-50/50">
+      {/* CORRECCIÓN: Scroll independiente solo activo a partir de resoluciones de PC */}
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto md:h-full space-y-6 bg-gray-50/50">
         
-        <div className="relative h-40 rounded-3xl overflow-hidden shadow-sm">
+        <div className="relative h-32 md:h-40 rounded-3xl overflow-hidden shadow-sm">
           <img src="/campus.jpeg" className="w-full h-full object-cover" alt="Campus Universitario" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-center p-6">
-            <h1 className="text-3xl text-white font-black">Estado de Baños Universitarios</h1>
-            <p className="text-orange-100 text-sm mt-1">Reporta e infórmate en vivo sobre las condiciones de limpieza del campus.</p>
+            <h1 className="text-xl md:text-3xl text-white font-black">Estado de Baños Universitarios</h1>
+            <p className="text-orange-100 text-xs md:text-sm mt-1">Reporta e infórmate en vivo sobre las condiciones de limpieza del campus.</p>
           </div>
         </div>
 
+        {/* CORRECCIÓN: El formulario pasa arriba o abajo fluidamente gracias al grid responsivo de Tailwind */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-2xl font-black text-gray-800">Estructura por Pabellones (A - J)</h2>
+          <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
+            <h2 className="text-xl md:text-2xl font-black text-gray-800">Estructura por Pabellones (A - J)</h2>
             
             <div className="space-y-6">
               {torres.map((tower) => (
-                <div key={tower} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-                  <h3 className="font-black text-xl text-orange-500 border-b pb-2 mb-4">
+                <div key={tower} className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-200">
+                  <h3 className="font-black text-lg md:text-xl text-orange-500 border-b pb-2 mb-4">
                     🏢 Edificio Torre {tower}
                   </h3>
                   
@@ -233,16 +236,19 @@ export default function App() {
                       );
 
                       return (
-                        <div key={piso} className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-2 last:border-0">
+                        /* CORRECCIÓN: Los bloques de los baños se adaptan fluidamente en móviles */
+                        <div key={piso} className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 sm:pb-2 last:border-0 gap-2 sm:gap-0">
                           <span className="text-sm font-bold text-gray-500">Piso {piso}</span>
-                          <div className="grid grid-cols-2 sm:flex gap-2 mt-1 sm:mt-0">
+                          
+                          {/* CORRECCIÓN: Contenedor con scroll horizontal táctil si hay demasiados elementos en una fila de móvil */}
+                          <div className="flex gap-2 mt-1 sm:mt-0 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                             {banosPiso.length === 0 ? (
                               <span className="text-xs text-gray-400 italic">No cargado en BD</span>
                             ) : (
                               banosPiso.map((b) => (
                                 <div 
                                   key={b.id} 
-                                  className={`text-xs px-2.5 py-1.5 rounded-xl font-bold flex flex-col items-center justify-center min-w-[80px] text-center border ${
+                                  className={`text-xs px-2.5 py-1.5 rounded-xl font-bold flex flex-col items-center justify-center min-w-[85px] text-center border shrink-0 ${
                                     b.status === "good" ? "bg-green-50 border-green-200 text-green-700" :
                                     b.status === "average" ? "bg-yellow-50 border-yellow-200 text-yellow-700" :
                                     b.status === "bad" ? "bg-red-50 border-red-200 text-red-700" : 
@@ -265,7 +271,7 @@ export default function App() {
           </div>
 
           {/* FORMULARIO DE REPORTE */}
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 h-fit lg:sticky lg:top-0">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 h-fit lg:sticky lg:top-0 order-1 lg:order-2">
             <h2 className="text-lg font-black text-gray-800 mb-3 flex items-center gap-2">
               🚨 Enviar Alerta de Estado
             </h2>
@@ -317,7 +323,7 @@ export default function App() {
 
             <div className="mt-6 border-t pt-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Historial Reciente</h3>
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-48 md:max-h-60 overflow-y-auto pr-1">
                 {reportes.length === 0 ? (
                   <p className="text-xs text-gray-400 italic">No hay registros aún.</p>
                 ) : (
@@ -338,9 +344,10 @@ export default function App() {
       </div>
 
       {/* PANEL DERECHO: CHAT GLOBAL PERSISTENTE */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-md flex-shrink-0">
+      {/* CORRECCIÓN: w-full en celulares con altura fija (h-80), w-80 fija en laptops con h-full */}
+      <div className="w-full md:w-80 h-80 md:h-full bg-white border-t md:border-t-0 md:border-l border-gray-200 flex flex-col shadow-md shrink-0">
         
-        <div className="p-4 border-b border-gray-200 bg-gray-50/50">
+        <div className="p-3 md:p-4 border-b border-gray-200 bg-gray-50/50">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
             <h2 className="text-sm font-black uppercase tracking-wider text-gray-800">
