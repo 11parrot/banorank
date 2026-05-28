@@ -6,13 +6,12 @@ import Auth from "./pages/Auth.jsx";
 const BACKEND_URL = "https://banorank-backend.onrender.com";
 
 const socket = io(BACKEND_URL, {
-  autoConnect: false, // Lo dejamos en false, pero lo encenderemos de forma manual en el useEffect
-  withCredentials: true // 🔥 Crucial para que permita conexiones desde Vercel y celulares externos
+  autoConnect: false, 
+  withCredentials: true 
 });
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
-  // 🔥 CORREGIDO: Ahora controlamos el cambio de estado del username dinámicamente
   const [username, setUsername] = useState(localStorage.getItem("username"));
 
   const [socketConnected, setSocketConnected] = useState(false);
@@ -35,10 +34,8 @@ export default function App() {
   const torres = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
   const pisos = [1, 2, 3, 4, 5, 6];
 
-  // Función para manejar el login exitoso desde el componente Auth
   const handleLoginSuccess = (tokenRecibido) => {
     setToken(tokenRecibido);
-    // Jalamos el username recién guardado por Auth en el localStorage
     setUsername(localStorage.getItem("username"));
   };
 
@@ -48,27 +45,23 @@ export default function App() {
   }, [mensajes]);
 
   useEffect(() => {
-    if (!token || !username) return; // 🔥 CORREGIDO: No conectar si falta el username en el estado
+    if (!token || !username) return; 
 
-    // Seteamos la autenticación del socket
     socket.auth = { token, username };
     
-    // 🔥 Fuerza la conexión manual si el socket está apagado
     if (!socket.connected) {
       socket.connect();
     }
 
-    // Evento de conexión limpia
     socket.on("connect", () => {
       setSocketConnected(true);
-      socket.emit("join", username); // Avisa al backend que entramos
+      socket.emit("join", username); 
     });
 
     socket.on("load_bathrooms", setBanosBD);
     socket.on("ranking_updated", setBanosBD);
     socket.on("load_reports", setReportes);
     
-    // Escucha el historial persistente guardado en la base de datos
     socket.on("load_chat_history", (history) => {
       const formattedHistory = history.map(msg => ({
         id: msg.id,
@@ -88,7 +81,6 @@ export default function App() {
       setMensajes((prev) => [...prev, data]);
     });
 
-    // Actualización instantánea del número de conectados
     socket.on("users_online", (count) => {
       setOnline(count);
     });
@@ -97,7 +89,6 @@ export default function App() {
       setUsuarios(list);
     });
 
-    // Si nos desconectamos, actualizamos el estado visual de carga
     socket.on("disconnect", () => {
       setSocketConnected(false);
     });
@@ -117,7 +108,6 @@ export default function App() {
     };
   }, [token, username]);
 
-  // Ejecución de envío de mensajes
   const enviarMensaje = () => {
     if (!nuevoMensaje.trim()) return;
 
@@ -134,7 +124,6 @@ export default function App() {
     }
   };
 
-  // Envío del reporte satelital
   const enviarReporte = (e) => {
     e.preventDefault();
     if (!selectedBathroom) return alert("Por favor, selecciona un baño.");
@@ -150,7 +139,6 @@ export default function App() {
   };
 
   if (!token) {
-    // 🔥 CORREGIDO: Ahora pasamos nuestra nueva función controladora de login
     return <Auth onLogin={handleLoginSuccess} />;
   }
 
@@ -202,18 +190,16 @@ export default function App() {
       {/* PANEL CENTRAL: MAPEO UNIVERSITARIO */}
       <div className="flex-1 p-6 overflow-y-auto h-full space-y-6 bg-gray-50/50">
         
-        {/* HERO BANNER */}
         <div className="relative h-40 rounded-3xl overflow-hidden shadow-sm">
           <img src="/campus.jpeg" className="w-full h-full object-cover" alt="Campus Universitario" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-center p-6">
             <h1 className="text-3xl text-white font-black">Estado de Baños Universitarios</h1>
-            <p className="text-orange-100 text-sm mt-1">Reporta e infórmate en vivo sobre las conditions de limpieza del campus.</p>
+            <p className="text-orange-100 text-sm mt-1">Reporta e infórmate en vivo sobre las condiciones de limpieza del campus.</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* ESTRUCTURA EDIFICIOS DE LA A - J */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-2xl font-black text-gray-800">Estructura por Pabellones (A - J)</h2>
             
@@ -313,7 +299,6 @@ export default function App() {
               </button>
             </form>
 
-            {/* HISTORIAL RECIENTE */}
             <div className="mt-6 border-t pt-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Historial Reciente</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -339,7 +324,6 @@ export default function App() {
       {/* PANEL DERECHO: CHAT GLOBAL PERSISTENTE */}
       <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-md flex-shrink-0">
         
-        {/* Cabecera del Chat */}
         <div className="p-4 border-b border-gray-200 bg-gray-50/50">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
@@ -350,7 +334,6 @@ export default function App() {
           <p className="text-[11px] text-gray-400 mt-0.5">Mensajes instantáneos de la comunidad</p>
         </div>
 
-        {/* Lista de Mensajes Visibles */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2.5 text-sm">
           {mensajes.length === 0 ? (
             <div className="h-full flex items-center justify-center text-gray-400 italic text-center p-4 text-xs">
@@ -373,7 +356,6 @@ export default function App() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input de envío */}
         <div className="p-3 bg-white border-t border-gray-200 flex gap-2 items-center">
           <input
             className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
