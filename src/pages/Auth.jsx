@@ -14,10 +14,14 @@ export default function Auth({ onLogin }) {
     setError("");
 
     try {
-      const url =
-        mode === "login"
-          ? "http://localhost:3000/api/auth/login"
-          : "http://localhost:3000/api/auth/register";
+      // 🔥 URL Inteligente: Detecta si está en producción (Render) o en tu PC local
+      const BASE_URL = window.location.hostname === "localhost" 
+        ? "http://localhost:3000" 
+        : "https://banorank-backend.onrender.com";
+
+      const url = mode === "login"
+        ? `${BASE_URL}/api/auth/login`
+        : `${BASE_URL}/api/auth/register`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -34,12 +38,11 @@ export default function Auth({ onLogin }) {
         return;
       }
 
-      // 💾 guardar token + username (IMPORTANTE PARA SOCKET)
+      // 💾 Guardar token + username (IMPORTANTE PARA SOCKET)
       localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.user.username); // 👈 AÑADIR ESTO
-      onLogin(data.token);
-
-      // 🚀 login al app
+      localStorage.setItem("username", data.user.username);
+      
+      // 🚀 Login al app
       onLogin(data.token);
 
     } catch (err) {
@@ -51,9 +54,7 @@ export default function Auth({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-neutral-900">
-
       <div className="w-[380px] bg-zinc-950 border border-zinc-800 p-8 rounded-2xl">
-
         <h1 className="text-white text-3xl font-bold text-center">
           🚽 BañoRank
         </h1>
@@ -63,7 +64,6 @@ export default function Auth({ onLogin }) {
         </p>
 
         <div className="mt-6 space-y-3">
-
           <input
             className="w-full p-3 bg-zinc-900 text-white rounded-lg"
             placeholder="username"
@@ -103,7 +103,6 @@ export default function Auth({ onLogin }) {
               ? "¿No tienes cuenta? Regístrate"
               : "¿Ya tienes cuenta? Inicia sesión"}
           </p>
-
         </div>
       </div>
     </div>
