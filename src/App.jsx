@@ -12,7 +12,8 @@ const socket = io(BACKEND_URL, {
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
-  const [username] = useState(localStorage.getItem("username"));
+  // 🔥 CORREGIDO: Ahora controlamos el cambio de estado del username dinámicamente
+  const [username, setUsername] = useState(localStorage.getItem("username"));
 
   const [socketConnected, setSocketConnected] = useState(false);
   const [online, setOnline] = useState(0);
@@ -34,13 +35,20 @@ export default function App() {
   const torres = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
   const pisos = [1, 2, 3, 4, 5, 6];
 
+  // Función para manejar el login exitoso desde el componente Auth
+  const handleLoginSuccess = (tokenRecibido) => {
+    setToken(tokenRecibido);
+    // Jalamos el username recién guardado por Auth en el localStorage
+    setUsername(localStorage.getItem("username"));
+  };
+
   // Auto-scroll del chat automático
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !username) return; // 🔥 CORREGIDO: No conectar si falta el username en el estado
 
     // Seteamos la autenticación del socket
     socket.auth = { token, username };
@@ -142,7 +150,8 @@ export default function App() {
   };
 
   if (!token) {
-    return <Auth onLogin={setToken} />;
+    // 🔥 CORREGIDO: Ahora pasamos nuestra nueva función controladora de login
+    return <Auth onLogin={handleLoginSuccess} />;
   }
 
   if (!socketConnected) {
@@ -198,7 +207,7 @@ export default function App() {
           <img src="/campus.jpeg" className="w-full h-full object-cover" alt="Campus Universitario" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-center p-6">
             <h1 className="text-3xl text-white font-black">Estado de Baños Universitarios</h1>
-            <p className="text-orange-100 text-sm mt-1">Reporta e infórmate en vivo sobre las condiciones de limpieza del campus.</p>
+            <p className="text-orange-100 text-sm mt-1">Reporta e infórmate en vivo sobre las conditions de limpieza del campus.</p>
           </div>
         </div>
 
@@ -304,7 +313,7 @@ export default function App() {
               </button>
             </form>
 
-            {/* HISTORIAL ABAJO DEL FORMULARIO */}
+            {/* HISTORIAL RECIENTE */}
             <div className="mt-6 border-t pt-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Historial Reciente</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -327,7 +336,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* PANEL DERECHO: CHAT GLOBAL PERSISTENTE EN BLANCO */}
+      {/* PANEL DERECHO: CHAT GLOBAL PERSISTENTE */}
       <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-md flex-shrink-0">
         
         {/* Cabecera del Chat */}
@@ -364,7 +373,7 @@ export default function App() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input con fondo blanco y envío con Enter */}
+        {/* Input de envío */}
         <div className="p-3 bg-white border-t border-gray-200 flex gap-2 items-center">
           <input
             className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
